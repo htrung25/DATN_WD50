@@ -16,8 +16,8 @@
                 <nav class="hidden md:flex items-center gap-8">
                     <a href="#" class="text-blue-600 font-bold border-b-2 border-blue-600 pb-1 text-sm tracking-wide transition-all">Tìm chuyến xe</a>
                     <a href="#" class="text-slate-600 hover:text-blue-600 font-semibold transition-colors pb-1 text-sm tracking-wide">Chuyến đi của tôi</a>
-                    <a href="#" class="text-slate-600 hover:text-blue-600 font-semibold transition-colors pb-1 text-sm tracking-wide">Thông báo</a>
                     <a href="#" class="text-slate-600 hover:text-blue-600 font-semibold transition-colors pb-1 text-sm tracking-wide">Hỗ trợ</a>
+                    <a href="#" class="text-slate-600 hover:text-blue-600 font-semibold transition-colors pb-1 text-sm tracking-wide">Trở thành đối tác</a>
                 </nav>
 
                 <!-- Header Actions (Notification & User Profile) -->
@@ -57,7 +57,8 @@
         <div class="hidden md:hidden bg-white border-b border-slate-100 px-4 pt-2 pb-4 space-y-2 shadow-inner" id="mobile-menu">
             <a href="#" class="block px-3 py-2 rounded-lg text-base font-semibold text-blue-600 bg-blue-50">Tìm chuyến xe</a>
             <a href="#" class="block px-3 py-2 rounded-lg text-base font-medium text-slate-600 hover:text-blue-600 hover:bg-slate-50 transition-colors">Chuyến đi của tôi</a>
-            <a href="#" class="block px-3 py-2 rounded-lg text-base font-medium text-slate-600 hover:text-blue-600 hover:bg-slate-50 transition-colors">Thông báo</a>
             <a href="#" class="block px-3 py-2 rounded-lg text-base font-medium text-slate-600 hover:text-blue-600 hover:bg-slate-50 transition-colors">Hỗ trợ</a>
+            <a href="#" class="block px-3 py-2 rounded-lg text-base font-medium text-slate-600 hover:text-blue-600 hover:bg-slate-50 transition-colors">Trở thành đối tác</a>
+        </div>
         </div>
     </header>

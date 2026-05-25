@@ -15,8 +15,14 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
+            $table->string('phone', 20)->unique()->nullable();
             $table->timestamp('email_verified_at')->nullable();
+            $table->timestamp('phone_verified_at')->nullable();
             $table->string('password');
+            $table->string('avatar', 255)->nullable();
+            $table->enum('provider', ['local', 'google', 'facebook'])->default('local');
+            $table->string('provider_id', 255)->nullable();
+            $table->enum('status', ['active', 'inactive', 'banned'])->default('active');
             $table->rememberToken();
             $table->timestamps();
         });
