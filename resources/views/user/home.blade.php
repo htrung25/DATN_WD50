@@ -1,5 +1,30 @@
 @extends('user.layouts.partials.app')
 
+@section('styles')
+    <!-- Leaflet Map CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        .leaflet-container {
+            font-family: 'Outfit', sans-serif !important;
+        }
+        .leaflet-bar {
+            border: none !important;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1) !important;
+            border-radius: 12px !important;
+            overflow: hidden;
+        }
+        .leaflet-bar a {
+            border-bottom: 1px solid #f1f5f9 !important;
+            color: #475569 !important;
+            transition: all 0.2s;
+        }
+        .leaflet-bar a:hover {
+            background-color: #f8fafc !important;
+            color: #2563eb !important;
+        }
+    </style>
+@endsection
+
 @section('content')
 <main class="flex-grow">
 
@@ -32,11 +57,15 @@
         <section class="relative z-20 max-w-6xl mx-auto px-4 sm:px-6 -mt-16 sm:-mt-20">
             <div class="bg-white rounded-3xl shadow-2xl p-6 sm:p-8 border border-slate-100/50 backdrop-blur-lg">
                 <form id="search-booking-form" class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-end">
+                    <!-- Hidden fields for coordinates -->
+                    <input type="hidden" name="pickup_lat" id="pickup-lat">
+                    <input type="hidden" name="pickup_lng" id="pickup-lng">
+                    <input type="hidden" name="dropoff_lat" id="dropoff-lat">
+                    <input type="hidden" name="dropoff_lng" id="dropoff-lng">
 
                     <!-- Điểm đón (Pick-up) -->
                     <div class="lg:col-span-3 relative">
-                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Điểm
-                            đón</label>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Điểm đón</label>
                         <div class="relative">
                             <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-blue-500">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
@@ -48,40 +77,34 @@
                                         d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                 </svg>
                             </span>
-                            <input type="text" id="pickup-input" placeholder="Nhập tỉnh, thành phố..." readonly
-                                class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-semibold text-slate-700 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all cursor-pointer">
+                            <input type="text" id="pickup-input" placeholder="Nhập địa chỉ đón chi tiết..." autocomplete="off"
+                                class="w-full pl-11 pr-10 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-semibold text-slate-700 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all">
+                            <button type="button" id="pickup-map-btn" title="Chọn trên bản đồ"
+                                class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-blue-600 transition-colors cursor-pointer">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
+                                </svg>
+                            </button>
                         </div>
 
-                        <!-- Dropdown Mock -->
+                        <!-- Dropdown Mock & Autocomplete -->
                         <div id="pickup-dropdown"
                             class="hidden absolute left-0 right-0 mt-2 bg-white border border-slate-100 rounded-2xl shadow-xl z-30 max-h-60 overflow-y-auto py-2">
-                            <div class="px-4 py-2 text-xs font-bold text-slate-400 uppercase">Tỉnh / Thành phố phổ biến
+                            <div id="pickup-dropdown-content">
+                                <div class="px-4 py-2 text-xs font-bold text-slate-400 uppercase">Tỉnh / Thành phố phổ biến</div>
+                                <button type="button" class="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors preset-location" data-lat="21.0285" data-lng="105.8542">Hà Nội</button>
+                                <button type="button" class="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors preset-location" data-lat="20.8449" data-lng="106.6881">Hải Phòng</button>
+                                <button type="button" class="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors preset-location" data-lat="20.9599" data-lng="107.0456">Quảng Ninh</button>
+                                <button type="button" class="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors preset-location" data-lat="10.8231" data-lng="106.6297">Sài Gòn</button>
+                                <button type="button" class="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors preset-location" data-lat="11.9404" data-lng="108.4583">Đà Lạt</button>
+                                <button type="button" class="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors preset-location" data-lat="10.3460" data-lng="107.0843">Vũng Tàu</button>
                             </div>
-                            <button type="button"
-                                class="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">Hà
-                                Nội</button>
-                            <button type="button"
-                                class="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">Hải
-                                Phòng</button>
-                            <button type="button"
-                                class="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">Quảng
-                                Ninh</button>
-                            <button type="button"
-                                class="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">Sài
-                                Gòn</button>
-                            <button type="button"
-                                class="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">Đà
-                                Lạt</button>
-                            <button type="button"
-                                class="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">Vũng
-                                Tàu</button>
                         </div>
                     </div>
 
                     <!-- Điểm trả (Drop-off) -->
                     <div class="lg:col-span-3 relative">
-                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Điểm
-                            trả</label>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Điểm trả</label>
                         <div class="relative">
                             <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-orange-500">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
@@ -93,33 +116,28 @@
                                         d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                 </svg>
                             </span>
-                            <input type="text" id="dropoff-input" placeholder="Nhập tỉnh, thành phố..." readonly
-                                class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-semibold text-slate-700 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all cursor-pointer">
+                            <input type="text" id="dropoff-input" placeholder="Nhập địa chỉ trả chi tiết..." autocomplete="off"
+                                class="w-full pl-11 pr-10 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-semibold text-slate-700 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all">
+                            <button type="button" id="dropoff-map-btn" title="Chọn trên bản đồ"
+                                class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-blue-600 transition-colors cursor-pointer">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
+                                </svg>
+                            </button>
                         </div>
 
-                        <!-- Dropdown Mock -->
+                        <!-- Dropdown Mock & Autocomplete -->
                         <div id="dropoff-dropdown"
                             class="hidden absolute left-0 right-0 mt-2 bg-white border border-slate-100 rounded-2xl shadow-xl z-30 max-h-60 overflow-y-auto py-2">
-                            <div class="px-4 py-2 text-xs font-bold text-slate-400 uppercase">Tỉnh / Thành phố phổ biến
+                            <div id="dropoff-dropdown-content">
+                                <div class="px-4 py-2 text-xs font-bold text-slate-400 uppercase">Tỉnh / Thành phố phổ biến</div>
+                                <button type="button" class="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors preset-location" data-lat="21.0285" data-lng="105.8542">Hà Nội</button>
+                                <button type="button" class="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors preset-location" data-lat="20.8449" data-lng="106.6881">Hải Phòng</button>
+                                <button type="button" class="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors preset-location" data-lat="20.9599" data-lng="107.0456">Quảng Ninh</button>
+                                <button type="button" class="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors preset-location" data-lat="10.8231" data-lng="106.6297">Sài Gòn</button>
+                                <button type="button" class="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors preset-location" data-lat="11.9404" data-lng="108.4583">Đà Lạt</button>
+                                <button type="button" class="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors preset-location" data-lat="10.3460" data-lng="107.0843">Vũng Tàu</button>
                             </div>
-                            <button type="button"
-                                class="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">Hà
-                                Nội</button>
-                            <button type="button"
-                                class="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">Hải
-                                Phòng</button>
-                            <button type="button"
-                                class="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">Quảng
-                                Ninh</button>
-                            <button type="button"
-                                class="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">Sài
-                                Gòn</button>
-                            <button type="button"
-                                class="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">Đà
-                                Lạt</button>
-                            <button type="button"
-                                class="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">Vũng
-                                Tàu</button>
                         </div>
                     </div>
 
@@ -854,9 +872,86 @@
             </button>
         </div>
     </div>
+
+    <!-- Map Picker Modal -->
+    <div id="map-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" id="map-modal-overlay"></div>
+        <div class="bg-white rounded-3xl p-6 max-w-2xl w-full mx-4 shadow-2xl relative z-10 border border-slate-100 transform scale-95 transition-transform duration-300 flex flex-col h-[90vh] md:h-[650px]"
+            id="map-modal-content">
+
+            <!-- Modal Header -->
+            <div class="flex items-start justify-between mb-4">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800" id="map-modal-title">Chọn địa điểm trên bản đồ</h3>
+                    <p class="text-slate-500 text-xs font-light mt-0.5">Kéo thả ghim hoặc click trên bản đồ để xác định địa chỉ chính xác.</p>
+                </div>
+                <button type="button" id="close-map-btn" class="p-1 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Address Search in Modal -->
+            <div class="relative mb-4">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </div>
+                <input type="text" id="map-search-input" placeholder="Tìm nhanh địa chỉ (ví dụ: Keangnam, Mỹ Đình, Hoàn Kiếm...)" autocomplete="off"
+                    class="w-full pl-9 pr-8 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-semibold text-slate-700 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all">
+                <button type="button" id="clear-map-search-btn" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 hidden">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+                
+                <!-- Search results dropdown inside map modal -->
+                <div id="map-search-results" class="hidden absolute left-0 right-0 mt-1 bg-white border border-slate-100 rounded-2xl shadow-xl z-[1010] max-h-48 overflow-y-auto py-2">
+                </div>
+            </div>
+
+            <!-- Leaflet Map Container -->
+            <div class="w-full flex-grow rounded-2xl overflow-hidden border border-slate-200 shadow-inner relative z-0" id="map-container" style="min-height: 250px;">
+                <!-- Map renders here -->
+            </div>
+
+            <!-- Selected address display -->
+            <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5 mt-4 mb-4 flex items-start gap-2.5">
+                <span class="text-blue-600 mt-0.5 shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                </span>
+                <div>
+                    <span class="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Địa chỉ đang chọn</span>
+                    <span class="text-xs font-bold text-slate-700 leading-normal block" id="map-selected-address">Đang tải bản đồ...</span>
+                </div>
+            </div>
+
+            <!-- Modal Footer Actions -->
+            <div class="flex items-center gap-3">
+                <button type="button" id="map-gps-btn"
+                    class="flex items-center justify-center gap-1.5 border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold py-3.5 px-4 rounded-2xl transition-all text-xs shrink-0 cursor-pointer">
+                    <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span>Vị trí hiện tại</span>
+                </button>
+                <button type="button" id="map-confirm-btn"
+                    class="flex-grow bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold py-3.5 px-6 rounded-2xl shadow-md hover:shadow-blue-500/10 transition-all text-sm flex items-center justify-center gap-1.5 cursor-pointer">
+                    <span>Xác nhận địa điểm</span>
+                </button>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('scripts')
+    <!-- Leaflet Map JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <!-- Active Interactivity Script -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -870,40 +965,108 @@
                 });
             }
 
-            // --- Dropdown Select Mocking ---
+            // --- Dropdown Select, Autocomplete & Map Picker ---
             const pickupInput = document.getElementById('pickup-input');
             const pickupDropdown = document.getElementById('pickup-dropdown');
             const dropoffInput = document.getElementById('dropoff-input');
             const dropoffDropdown = document.getElementById('dropoff-dropdown');
 
-            if (pickupInput && pickupDropdown) {
-                pickupInput.addEventListener('click', (e) => {
+            const pickupLat = document.getElementById('pickup-lat');
+            const pickupLng = document.getElementById('pickup-lng');
+            const dropoffLat = document.getElementById('dropoff-lat');
+            const dropoffLng = document.getElementById('dropoff-lng');
+
+            const pickupMapBtn = document.getElementById('pickup-map-btn');
+            const dropoffMapBtn = document.getElementById('dropoff-map-btn');
+
+            // Autocomplete helper function
+            let autocompleteTimeout = null;
+            function setupAutocomplete(input, dropdown, dropdownContentId, latField, lngField) {
+                const dropdownContent = document.getElementById(dropdownContentId);
+                const originalContent = dropdownContent.innerHTML;
+
+                // Show presets when query is short
+                const showPresets = () => {
+                    dropdownContent.innerHTML = originalContent;
+                    dropdown.classList.remove('hidden');
+                    
+                    // Attach click handlers to presets
+                    dropdownContent.querySelectorAll('.preset-location').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            input.value = btn.innerText;
+                            latField.value = btn.getAttribute('data-lat');
+                            lngField.value = btn.getAttribute('data-lng');
+                            dropdown.classList.add('hidden');
+                        });
+                    });
+                };
+
+                input.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    pickupDropdown.classList.toggle('hidden');
-                    if (dropoffDropdown) dropoffDropdown.classList.add('hidden');
+                    // Hide other dropdown
+                    const otherDropdown = dropdown === pickupDropdown ? dropoffDropdown : pickupDropdown;
+                    if (otherDropdown) otherDropdown.classList.add('hidden');
+
+                    if (input.value.trim().length < 2) {
+                        showPresets();
+                    } else {
+                        dropdown.classList.remove('hidden');
+                    }
                 });
 
-                pickupDropdown.querySelectorAll('button').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        pickupInput.value = btn.innerText;
-                        pickupDropdown.classList.add('hidden');
-                    });
+                input.addEventListener('input', () => {
+                    const query = input.value.trim();
+                    if (query.length < 2) {
+                        showPresets();
+                        return;
+                    }
+
+                    clearTimeout(autocompleteTimeout);
+                    autocompleteTimeout = setTimeout(() => {
+                        dropdownContent.innerHTML = '<div class="px-4 py-2.5 text-xs font-semibold text-slate-400">Đang tìm địa điểm gợi ý...</div>';
+                        dropdown.classList.remove('hidden');
+
+                        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&countrycodes=vn&addressdetails=1`, {
+                            headers: {
+                                'Accept-Language': 'vi,en;q=0.9'
+                            }
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data && data.length > 0) {
+                                dropdownContent.innerHTML = '';
+                                data.forEach(item => {
+                                    const btn = document.createElement('button');
+                                    btn.type = 'button';
+                                    btn.className = 'w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-b-0 block truncate';
+                                    btn.innerText = item.display_name;
+                                    btn.addEventListener('click', (e) => {
+                                        e.stopPropagation();
+                                        input.value = item.display_name;
+                                        latField.value = item.lat;
+                                        lngField.value = item.lon;
+                                        dropdown.classList.add('hidden');
+                                    });
+                                    dropdownContent.appendChild(btn);
+                                });
+                            } else {
+                                dropdownContent.innerHTML = '<div class="px-4 py-2.5 text-xs text-slate-400">Không tìm thấy địa điểm phù hợp</div>';
+                            }
+                        })
+                        .catch(err => {
+                            console.error(err);
+                            dropdownContent.innerHTML = '<div class="px-4 py-2.5 text-xs text-red-500">Lỗi tải gợi ý, vui lòng thử lại</div>';
+                        });
+                    }, 400);
                 });
             }
 
+            if (pickupInput && pickupDropdown) {
+                setupAutocomplete(pickupInput, pickupDropdown, 'pickup-dropdown-content', pickupLat, pickupLng);
+            }
             if (dropoffInput && dropoffDropdown) {
-                dropoffInput.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    dropoffDropdown.classList.toggle('hidden');
-                    if (pickupDropdown) pickupDropdown.classList.add('hidden');
-                });
-
-                dropoffDropdown.querySelectorAll('button').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        dropoffInput.value = btn.innerText;
-                        dropoffDropdown.classList.add('hidden');
-                    });
-                });
+                setupAutocomplete(dropoffInput, dropoffDropdown, 'dropoff-dropdown-content', dropoffLat, dropoffLng);
             }
 
             // Close dropdowns on outside click
@@ -911,6 +1074,246 @@
                 if (pickupDropdown) pickupDropdown.classList.add('hidden');
                 if (dropoffDropdown) dropoffDropdown.classList.add('hidden');
             });
+
+            // --- Map Picker Modal Logic ---
+            const mapModal = document.getElementById('map-modal');
+            const mapModalOverlay = document.getElementById('map-modal-overlay');
+            const mapModalContent = document.getElementById('map-modal-content');
+            const closeMapBtn = document.getElementById('close-map-btn');
+            const mapConfirmBtn = document.getElementById('map-confirm-btn');
+            const mapGpsBtn = document.getElementById('map-gps-btn');
+            const mapSearchInput = document.getElementById('map-search-input');
+            const clearMapSearchBtn = document.getElementById('clear-map-search-btn');
+            const mapSearchResults = document.getElementById('map-search-results');
+            const mapSelectedAddress = document.getElementById('map-selected-address');
+            const mapModalTitle = document.getElementById('map-modal-title');
+
+            let mapObj = null;
+            let mapMarker = null;
+            let activeField = null; // 'pickup' or 'dropoff'
+            let currentResolvedAddress = '';
+            let currentCoords = { lat: 21.0285, lng: 105.8542 };
+
+            // Premium custom SVG marker with ping animation
+            const premiumMarkerIcon = L.divIcon({
+                html: `<div class="relative flex flex-col items-center justify-center" style="transform: translate(-50%, -100%);">
+                        <div class="flex items-center justify-center w-9 h-9 bg-blue-600 rounded-full border-2 border-white shadow-lg text-white">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                            </svg>
+                        </div>
+                        <div class="w-2.5 h-2.5 bg-blue-600 border-r-2 border-b-2 border-white transform rotate-45 -mt-[6px] shadow-sm"></div>
+                       </div>`,
+                className: 'custom-leaflet-marker',
+                iconSize: [0, 0],
+                iconAnchor: [0, 0]
+            });
+
+            function reverseGeocode(lat, lng) {
+                mapSelectedAddress.innerText = 'Đang giải mã vị trí...';
+                currentCoords = { lat, lng };
+                
+                fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`, {
+                    headers: {
+                        'Accept-Language': 'vi,en;q=0.9'
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.display_name) {
+                        currentResolvedAddress = data.display_name;
+                        mapSelectedAddress.innerText = currentResolvedAddress;
+                    } else {
+                        currentResolvedAddress = `Tọa độ: ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                        mapSelectedAddress.innerText = currentResolvedAddress;
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    currentResolvedAddress = `Tọa độ: ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                    mapSelectedAddress.innerText = currentResolvedAddress;
+                });
+            }
+
+            function openMapPicker(field) {
+                activeField = field;
+                mapModalTitle.innerText = field === 'pickup' ? 'Chọn điểm đón trên bản đồ' : 'Chọn điểm trả trên bản đồ';
+                mapSearchInput.value = '';
+                clearMapSearchBtn.classList.add('hidden');
+                mapSearchResults.classList.add('hidden');
+                mapSearchResults.innerHTML = '';
+                
+                mapModal.classList.remove('hidden');
+                setTimeout(() => {
+                    mapModalContent.classList.remove('scale-95');
+                    mapModalContent.classList.add('scale-100');
+                }, 50);
+
+                const currentLatField = document.getElementById(field + '-lat');
+                const currentLngField = document.getElementById(field + '-lng');
+                const latVal = parseFloat(currentLatField.value);
+                const lngVal = parseFloat(currentLngField.value);
+                
+                let targetLat = 21.0285; // Hanoi default
+                let targetLng = 105.8542;
+
+                if (!isNaN(latVal) && !isNaN(lngVal)) {
+                    targetLat = latVal;
+                    targetLng = lngVal;
+                }
+
+                if (!mapObj) {
+                    mapObj = L.map('map-container', {
+                        zoomControl: true
+                    }).setView([targetLat, targetLng], 15);
+
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        maxZoom: 19,
+                        attribution: '© OpenStreetMap contributors'
+                    }).addTo(mapObj);
+
+                    mapMarker = L.marker([targetLat, targetLng], {
+                        draggable: true,
+                        icon: premiumMarkerIcon
+                    }).addTo(mapObj);
+
+                    mapMarker.on('dragend', function () {
+                        const latLng = mapMarker.getLatLng();
+                        reverseGeocode(latLng.lat, latLng.lng);
+                    });
+
+                    mapObj.on('click', function (e) {
+                        mapMarker.setLatLng(e.latlng);
+                        reverseGeocode(e.latlng.lat, e.latlng.lng);
+                    });
+                } else {
+                    mapObj.setView([targetLat, targetLng], 15);
+                    mapMarker.setLatLng([targetLat, targetLng]);
+                }
+
+                setTimeout(() => {
+                    mapObj.invalidateSize();
+                }, 150);
+
+                reverseGeocode(targetLat, targetLng);
+            }
+
+            const closeMapModal = () => {
+                mapModalContent.classList.remove('scale-100');
+                mapModalContent.classList.add('scale-95');
+                setTimeout(() => {
+                    mapModal.classList.add('hidden');
+                }, 150);
+            };
+
+            if (pickupMapBtn) pickupMapBtn.addEventListener('click', (e) => { e.stopPropagation(); openMapPicker('pickup'); });
+            if (dropoffMapBtn) dropoffMapBtn.addEventListener('click', (e) => { e.stopPropagation(); openMapPicker('dropoff'); });
+            if (closeMapBtn) closeMapBtn.addEventListener('click', closeMapModal);
+            if (mapModalOverlay) mapModalOverlay.addEventListener('click', closeMapModal);
+
+            // Confirm address
+            if (mapConfirmBtn) {
+                mapConfirmBtn.addEventListener('click', () => {
+                    if (activeField) {
+                        const inputField = document.getElementById(activeField + '-input');
+                        const latField = document.getElementById(activeField + '-lat');
+                        const lngField = document.getElementById(activeField + '-lng');
+                        
+                        inputField.value = currentResolvedAddress;
+                        latField.value = currentCoords.lat;
+                        lngField.value = currentCoords.lng;
+                    }
+                    closeMapModal();
+                });
+            }
+
+            // GPS Location
+            if (mapGpsBtn) {
+                mapGpsBtn.addEventListener('click', () => {
+                    if (navigator.geolocation) {
+                        mapSelectedAddress.innerText = 'Đang tìm vị trí hiện tại của bạn...';
+                        navigator.geolocation.getCurrentPosition(
+                            (position) => {
+                                const lat = position.coords.latitude;
+                                const lng = position.coords.longitude;
+                                mapObj.flyTo([lat, lng], 16);
+                                mapMarker.setLatLng([lat, lng]);
+                                reverseGeocode(lat, lng);
+                            },
+                            (error) => {
+                                console.error(error);
+                                mapSelectedAddress.innerText = 'Không thể định vị vị trí hiện tại. Vui lòng cấp quyền định vị cho trình duyệt.';
+                            },
+                            { enableHighAccuracy: true, timeout: 7000 }
+                        );
+                    } else {
+                        mapSelectedAddress.innerText = 'Trình duyệt của bạn không hỗ trợ định vị GPS.';
+                    }
+                });
+            }
+
+            // Map Search Input Autocomplete
+            let mapSearchTimeout = null;
+            if (mapSearchInput) {
+                mapSearchInput.addEventListener('input', () => {
+                    const query = mapSearchInput.value.trim();
+                    if (query.length === 0) {
+                        clearMapSearchBtn.classList.add('hidden');
+                        mapSearchResults.classList.add('hidden');
+                        mapSearchResults.innerHTML = '';
+                        return;
+                    }
+                    clearMapSearchBtn.classList.remove('hidden');
+
+                    clearTimeout(mapSearchTimeout);
+                    mapSearchTimeout = setTimeout(() => {
+                        mapSearchResults.innerHTML = '<div class="px-4 py-2.5 text-xs text-slate-400">Đang tìm kiếm...</div>';
+                        mapSearchResults.classList.remove('hidden');
+
+                        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&countrycodes=vn&addressdetails=1`, {
+                            headers: {
+                                'Accept-Language': 'vi,en;q=0.9'
+                            }
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data && data.length > 0) {
+                                mapSearchResults.innerHTML = '';
+                                data.forEach(item => {
+                                    const btn = document.createElement('button');
+                                    btn.type = 'button';
+                                    btn.className = 'w-full text-left px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-b-0 block truncate';
+                                    btn.innerText = item.display_name;
+                                    btn.addEventListener('click', () => {
+                                        const lat = parseFloat(item.lat);
+                                        const lon = parseFloat(item.lon);
+                                        mapObj.setView([lat, lon], 16);
+                                        mapMarker.setLatLng([lat, lon]);
+                                        reverseGeocode(lat, lon);
+                                        mapSearchResults.classList.add('hidden');
+                                    });
+                                    mapSearchResults.appendChild(btn);
+                                });
+                            } else {
+                                mapSearchResults.innerHTML = '<div class="px-4 py-2.5 text-xs text-slate-400">Không tìm thấy địa điểm</div>';
+                            }
+                        })
+                        .catch(err => {
+                            console.error(err);
+                            mapSearchResults.innerHTML = '<div class="px-4 py-2.5 text-xs text-red-500">Lỗi tìm kiếm, vui lòng thử lại</div>';
+                        });
+                    }, 450);
+                });
+            }
+
+            if (clearMapSearchBtn) {
+                clearMapSearchBtn.addEventListener('click', () => {
+                    mapSearchInput.value = '';
+                    clearMapSearchBtn.classList.add('hidden');
+                    mapSearchResults.classList.add('hidden');
+                    mapSearchResults.innerHTML = '';
+                });
+            }
 
             // --- Set Default Date ---
             const dateInput = document.getElementById('departure-date');
