@@ -20,9 +20,10 @@
                     <a href="#" class="text-slate-600 hover:text-blue-600 font-semibold transition-colors pb-1 text-sm tracking-wide">Trở thành đối tác</a>
                 </nav>
 
-                <!-- Header Actions (Notification & User Profile) -->
-                <div class="flex items-center gap-4">
-                    <!-- Notification Bell -->
+                <!-- Header Actions -->
+                <div class="flex items-center gap-3">
+                    @auth
+                    <!-- Notification Bell (Auth only) -->
                     <button class="relative p-2 text-slate-400 hover:text-blue-600 hover:bg-slate-50 rounded-full transition-all cursor-pointer">
                         <span class="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-red-500 rounded-full ring-1 ring-white animate-pulse"></span>
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -30,18 +31,32 @@
                         </svg>
                     </button>
 
-                    <!-- Profile Button -->
+                    <!-- Profile Button (Auth only) -->
                     <button class="flex items-center gap-2.5 px-3 py-1.5 border border-slate-200 rounded-2xl hover:border-blue-600 hover:bg-blue-50/20 transition-all duration-300 shadow-xs bg-white cursor-pointer group">
-                        <!-- Avatar -->
                         <img class="w-8 h-8 rounded-full object-cover ring-2 ring-slate-100" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="User Avatar">
                         <div class="hidden sm:flex flex-col text-left leading-tight">
-                            <span class="text-xs font-bold text-slate-700 group-hover:text-blue-600 transition-colors">Tài khoản</span>
+                            <span class="text-xs font-bold text-slate-700 group-hover:text-blue-600 transition-colors">{{ Auth::user()->name ?? 'Tài khoản' }}</span>
                             <span class="text-[10px] text-slate-500 group-hover:text-blue-500 transition-colors">của tôi</span>
                         </div>
                         <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path>
                         </svg>
                     </button>
+                    @endauth
+
+                    @guest
+                    <!-- Login Button (Guest only) -->
+                    <button data-auth-trigger="login"
+                        class="px-5 py-2.5 text-sm font-bold text-slate-600 hover:text-blue-600 hover:bg-blue-50/50 rounded-2xl transition-all cursor-pointer border border-transparent hover:border-blue-100">
+                        Đăng nhập
+                    </button>
+
+                    <!-- Register Button (Guest only) -->
+                    <button data-auth-trigger="register"
+                        class="px-5 py-2.5 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 rounded-2xl transition-all shadow-md hover:shadow-blue-500/20 cursor-pointer">
+                        Đăng ký
+                    </button>
+                    @endguest
 
                     <!-- Mobile Menu Button -->
                     <button class="md:hidden p-2 text-slate-500 hover:text-blue-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer" id="mobile-menu-btn">
@@ -59,6 +74,12 @@
             <a href="#" class="block px-3 py-2 rounded-lg text-base font-medium text-slate-600 hover:text-blue-600 hover:bg-slate-50 transition-colors">Chuyến đi của tôi</a>
             <a href="#" class="block px-3 py-2 rounded-lg text-base font-medium text-slate-600 hover:text-blue-600 hover:bg-slate-50 transition-colors">Hỗ trợ</a>
             <a href="#" class="block px-3 py-2 rounded-lg text-base font-medium text-slate-600 hover:text-blue-600 hover:bg-slate-50 transition-colors">Trở thành đối tác</a>
+            @guest
+            <div class="pt-2 border-t border-slate-100 flex gap-2">
+                <button data-auth-trigger="login" class="flex-1 px-4 py-2.5 text-sm font-bold text-slate-600 border border-slate-200 rounded-xl hover:bg-slate-50 transition-all cursor-pointer">Đăng nhập</button>
+                <button data-auth-trigger="register" class="flex-1 px-4 py-2.5 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-all cursor-pointer">Đăng ký</button>
+            </div>
+            @endguest
         </div>
         </div>
     </header>

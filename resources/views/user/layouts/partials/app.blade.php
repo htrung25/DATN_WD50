@@ -41,6 +41,12 @@
 
     @include('user.layouts.partials.footer')
 
+    {{-- Auth Modals (Guest only) --}}
+    @guest
+        @include('user.auth.login')
+        @include('user.auth.register')
+    @endguest
+
     @yield('scripts')
 </body>
 
